@@ -1,0 +1,5 @@
+SELECT pg_get_serial_sequence('"' || table_name || '"', column_name),
+       reset_sequence(table_name, column_name,
+                        pg_get_serial_sequence('"' || table_name || '"', column_name)) FROM
+       information_schema.columns where column_default like 'nextval%';
+

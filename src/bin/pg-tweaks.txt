@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION "reset_sequence" (tablename text, columnname text, sequence_name text) RETURNS "pg_catalog"."void" AS
+
+  $body$
+    DECLARE
+    BEGIN
+    EXECUTE 'SELECT setval (''' || sequence_name || ''', '
+                                || '(SELECT MAX("' || columnname
+                                || '") FROM "' || tablename || '")' || '+1)';
+    END;
+  $body$ LANGUAGE 'plpgsql';
+
+SELECT pg_get_serial_sequence('"' || table_name || '"', column_name),
+       reset_sequence(table_name, column_name,
+                        pg_get_serial_sequence('"' || table_name || '"', column_name)) FROM
+       information_schema.columns where column_default like 'nextval%';
+
+CREATE OR REPLACE FUNCTION "set_to_timestamp_no_tz" (tablename text, columnname text) RETURNS "pg_catalog"."void" AS
+
+  $body$
+    DECLARE
+    BEGIN
+    EXECUTE 'ALTER TABLE "' || tablename || '" ALTER "'
+                                || columnname || '" type timestamp;';
+    END;
+  $body$ LANGUAGE 'plpgsql';
+
+SELECT set_to_timestamp_no_tz(table_name, column_name),
+       table_schema, table_name, column_name, data_type FROM
+       information_schema.columns where table_schema='public' and data_type='timestamp with time zone';
+

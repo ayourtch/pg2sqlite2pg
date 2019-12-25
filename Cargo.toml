@@ -1,0 +1,26 @@
+[package]
+name = "pg2sqlite2pg"
+version = "0.1.0"
+authors = ["Andrew Yourtchenko <ayourtch@gmail.com>"]
+
+[dependencies]
+time = "*"
+regex = "*"
+git2 = "*"
+md5 = "*"
+
+argparse = "0.2.1"
+log="*"
+slog="1.5.2"
+slog-term="1.5.0"
+slog-stream="1.2.0"
+slog-stdlog="1.1.0"
+rand = "0.3"
+rust-ini = "0.9"
+
+rusqlite = "0.20.0"
+
+dotenv = "0.9.0"
+postgres = { version = "*", features = ["with-chrono"] }
+
+chrono = "*"

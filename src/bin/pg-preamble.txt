@@ -1,0 +1,68 @@
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.5.10
+-- Dumped by pg_dump version 9.5.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
+--
+
+-- CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
+--
+
+-- COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: reset_sequence(text, text, text); Type: FUNCTION; Schema: public; Owner: {{pg_user}}
+--
+
+CREATE OR REPLACE FUNCTION reset_sequence(tablename text, columnname text, sequence_name text) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+    BEGIN
+    EXECUTE 'SELECT setval (''' || sequence_name || ''', '
+                                || '(SELECT MAX("' || columnname
+                                || '") FROM "' || tablename || '")' || '+1)';
+    END;
+  $$;
+
+
+ALTER FUNCTION public.reset_sequence(tablename text, columnname text, sequence_name text) OWNER TO {{pg_user}};
+
+--
+-- Name: set_to_timestamp_no_tz(text, text); Type: FUNCTION; Schema: public; Owner: {{pg_user}}
+--
+
+CREATE OR REPLACE FUNCTION set_to_timestamp_no_tz(tablename text, columnname text) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+    BEGIN
+    EXECUTE 'ALTER TABLE "' || tablename || '" ALTER "'
+                                || columnname || '" type timestamp;';
+    END;
+  $$;
+
+
+ALTER FUNCTION public.set_to_timestamp_no_tz(tablename text, columnname text) OWNER TO {{pg_user}};
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
