@@ -157,6 +157,34 @@ where
     }
 }
 
+fn for_each_unique_column<F>(conn: &Connection, mut some_closure: F)
+where
+    F: FnMut(&Connection, &str, &str),
+{
+    let pragma_sql = format!(
+        "SELECT DISTINCT m.name as table_name, ii.name as column_name
+  FROM sqlite_master AS m,
+       pragma_index_list(m.name) AS il,
+       pragma_index_info(il.name) AS ii
+ WHERE m.type='table' AND il.[unique] = 1;"
+    );
+
+    let mut stmt = conn.prepare(&pragma_sql).unwrap();
+
+    let row_iter = stmt
+        .query_map(NO_PARAMS, |row| {
+            let tab: String = row.get_unwrap(0);
+            let col: String = row.get_unwrap(1);
+            Ok((tab, col))
+        })
+        .unwrap();
+
+    for col in row_iter {
+        let (table_name, column_name) = col.unwrap();
+        some_closure(conn, &table_name, &column_name);
+    }
+}
+
 /*
 sqlite> pragma foreign_key_list("Addresses")
    ...> ;
@@ -367,6 +395,21 @@ fn print_constraint_pkey(pg_user: &str, table: &str, column: &str) {
     );
 }
 
+fn print_constraint_unique(pg_user: &str, table: &str, column: &str) {
+    let idxname = format!("{}_unique", &idx_name(table, column));
+    println!("--");
+    println!(
+        "-- Name: {}; Type: CONSTRAINT; Schema: public; Owner: {}",
+        idxname, pg_user
+    );
+    println!("--\n");
+    println!("ALTER TABLE ONLY \"{}\"", table);
+    println!(
+        "    ADD CONSTRAINT \"{}\" UNIQUE (\"{}\");\n\n",
+        idxname, column
+    );
+}
+
 fn fk_name(table: &str, column: &str) -> String {
     let fkname = format!("{}_{}_fkey", table, column);
     fkname
@@ -438,6 +481,10 @@ fn sql_from_scratch(pg_user: &str, conn: &Connection) {
                 print_constraint_pkey(pg_user, t, &col.name);
             }
         });
+    });
+    // dump the unique constraints
+    for_each_unique_column(&conn, |_conn, t, c| {
+        print_constraint_unique(pg_user, t, c);
     });
     // dump the foreign key statements
     for_each_table(&conn, |conn, t| {
