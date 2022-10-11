@@ -11,10 +11,6 @@ md5 = "*"
 
 argparse = "0.2.1"
 log="*"
-slog="*"
-slog-term="*"
-slog-stream="*"
-slog-stdlog="*"
 rand = "0.3"
 rust-ini = "0.9"
 
