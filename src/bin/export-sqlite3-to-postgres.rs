@@ -3,8 +3,8 @@ extern crate rusqlite;
 use dotenv::dotenv;
 use std::env;
 
+use rusqlite::Connection;
 use rusqlite::Result;
-use rusqlite::{Connection, NO_PARAMS};
 extern crate chrono;
 // use rusqlite::types::{FromSql, FromSqlResult, ValueRef, ToSql, ToSqlOutput, Value, FromSqlError};
 use rusqlite::types::Value;
@@ -116,7 +116,7 @@ where
         .unwrap();
 
     let row_iter = stmt
-        .query_map(NO_PARAMS, |row| {
+        .query_map([], |row| {
             let tbl_name: String = row.get_unwrap(0);
             Ok(tbl_name)
         })
@@ -138,7 +138,7 @@ where
     let mut stmt = conn.prepare(&pragma_sql).unwrap();
 
     let row_iter = stmt
-        .query_map(NO_PARAMS, |row| {
+        .query_map([], |row| {
             let col_info = ColInfo {
                 num: row.get_unwrap(0),
                 name: row.get_unwrap(1),
@@ -172,7 +172,7 @@ where
     let mut stmt = conn.prepare(&pragma_sql).unwrap();
 
     let row_iter = stmt
-        .query_map(NO_PARAMS, |row| {
+        .query_map([], |row| {
             let tab: String = row.get_unwrap(0);
             let col: String = row.get_unwrap(1);
             Ok((tab, col))
@@ -210,7 +210,7 @@ where
     let mut stmt = conn.prepare(&pragma_sql).unwrap();
 
     let row_iter = stmt
-        .query_map(NO_PARAMS, |row| {
+        .query_map([], |row| {
             let col_info = ForeignKeyInfo {
                 num: row.get_unwrap(0),
                 something: row.get_unwrap(1),
@@ -243,11 +243,10 @@ fn print_data_dump(
 
     let mut stmt = conn.prepare(&pragma_sql).unwrap();
 
-    let mut rows = (stmt.query(NO_PARAMS)).unwrap();
+    let num_columns = stmt.column_count();
+    let mut rows = (stmt.query([])).unwrap();
 
     while let Ok(Some(row)) = rows.next() {
-        let num_columns = row.column_count();
-
         let mut out: String = format!("INSERT INTO \"{}\" VALUES (", curr_table_name).to_string();
         let mut maybe_comma = "";
 

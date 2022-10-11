@@ -18,7 +18,7 @@ slog-stdlog="1.1.0"
 rand = "0.3"
 rust-ini = "0.9"
 
-rusqlite = "0.20.0"
+rusqlite = "*"
 
 dotenv = "0.9.0"
 postgres = { version = "*", features = ["with-chrono-0_4"] }
