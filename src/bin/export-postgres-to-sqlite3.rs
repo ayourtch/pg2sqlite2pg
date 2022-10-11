@@ -2,10 +2,11 @@ extern crate chrono;
 extern crate dotenv;
 extern crate postgres;
 
+use chrono::NaiveDateTime;
 use dotenv::dotenv;
 use std::env;
 
-use postgres::{Connection, TlsMode};
+use postgres::{Client, NoTls};
 
 fn convert_type(t: &str) -> &str {
     match t {
@@ -25,7 +26,7 @@ fn convert_type(t: &str) -> &str {
     */
 }
 
-fn get_row_desc(row: &postgres::rows::Row, pk_field_name: &str) -> String {
+fn get_row_desc(row: &postgres::Row, pk_field_name: &str) -> String {
     // let tbl_name: String = row.get("table_name");
     let col_name: String = row.get("column_name");
     // let col_pos: i32 = row.get("ordinal_position");
@@ -87,7 +88,7 @@ fn get_row_desc(row: &postgres::rows::Row, pk_field_name: &str) -> String {
     format!("{} {}", col_name, sqlite3_type)
 }
 
-fn dump_table(conn: &postgres::Connection, curr_table_name: String) {
+fn dump_table(conn: &mut postgres::Client, curr_table_name: String) {
     // use postgres::types::Type;
     // use postgres::types::FromSql;
 
@@ -185,7 +186,7 @@ fn dump_table(conn: &postgres::Connection, curr_table_name: String) {
                     }
                 }
                 "timestamp" => {
-                    let v: Option<chrono::NaiveDateTime> = row.get(i);
+                    let v: Option<NaiveDateTime> = row.get(i);
                     match v {
                         None => "NULL".to_string(),
                         Some(iv) => format!("'{}'", iv).to_string(),
@@ -218,12 +219,12 @@ fn main() {
 
     let url = env::var("POSTGRES_DB_URL").expect("POSTGRES_DB_URL must be set");
 
-    let conn = Connection::connect(url, TlsMode::None).unwrap();
+    let mut conn = Client::connect(&url, NoTls).unwrap();
 
     for tbl_row in &conn.query("select table_name from information_schema.tables where table_schema='public' order by table_name", &[]).unwrap() {
       let curr_table_name: String = tbl_row.get("table_name");
       if curr_table_name.find("__diesel_schema").is_none() {
-        dump_table(&conn, curr_table_name);
+        dump_table(&mut conn, curr_table_name);
       }
    }
     println!("COMMIT;");
