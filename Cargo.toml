@@ -20,7 +20,7 @@ rust-ini = "0.9"
 
 rusqlite = "*"
 
-dotenv = "0.9.0"
+dotenv = "*"
 postgres = { version = "*", features = ["with-chrono-0_4"] }
 
 chrono = "*"
